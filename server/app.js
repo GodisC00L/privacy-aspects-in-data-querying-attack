@@ -3,11 +3,16 @@ const app = express();
 const path = require('path');
 const multer = require('multer');
 const attackApi = require('./attack');
+const fs = require('fs');
 
 const port = process.env.PORT || 3000;
 
 app.use(express.static(path.resolve(__dirname, '..', 'client')));
-
+try {
+    fs.mkdirSync('server/tmp/csv/', {recursive: true});
+} catch (e) {
+    console.log(e);
+}
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
