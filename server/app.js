@@ -11,7 +11,7 @@ app.use(express.static(path.resolve(__dirname, '..', 'client')));
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'tmp/csv/');
+        cb(null, 'server/tmp/csv/');
     },
     filename: function (req, file, cb) {
         cb(null, 'target.csv');
