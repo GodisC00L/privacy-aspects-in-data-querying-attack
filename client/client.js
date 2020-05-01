@@ -1,5 +1,5 @@
 const DEBUG = false;
-const localhost = true;
+const localhost = false;
 let SERVER = "http://localhost:8080";
 if (!localhost) {
     SERVER = "https://immense-scrubland-97943.herokuapp.com"

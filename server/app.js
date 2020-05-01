@@ -1,8 +1,6 @@
 const express = require('express');
 const app = express();
 const path = require('path');
-const clintApi = require('../client/client');
-const fs = require('fs');
 const multer = require('multer');
 const attackApi = require('./attack');
 

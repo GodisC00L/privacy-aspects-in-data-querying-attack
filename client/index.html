@@ -141,7 +141,9 @@
             })
         });
         document.getElementById("setKBtn").addEventListener("click", () => {
-            setKVal($("#setK").val());
+            setKVal($("#setK").val()).then((res) => {
+                $("#kVal").text(res);
+            });
         });
 
 

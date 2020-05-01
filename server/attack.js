@@ -1,6 +1,7 @@
 const fs = require('fs');
 const client = require('../client/client');
 const csv = require('fast-csv');
+const cliProgress = require('cli-progress');
 
 let rows = [];
 let K = [];
@@ -8,21 +9,29 @@ let id = 1;
 
 
 exports.attackFile = (cb) => {
+    const totalSize = fs.statSync('tmp/csv/target.csv').size;
+    const pBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+    let read = 0;
+    pBar.start(totalSize, 0);
+    let startAttackTime = new Date();
     const attackedFile = fs.createWriteStream('tmp/csv/attacked.csv');
-    const attackFileOriginal = fs.createReadStream('tmp/csv/target.csv')
-        .pipe(csv.parse({headers: true}))
+    const attackFileOriginal = fs.createReadStream('tmp/csv/target.csv');
+    const parser = csv.parseStream(attackFileOriginal, {headers: true})
         .on('error', err => console.error(err))
         .on('headers', (row) => {
-            attackFileOriginal.pause();
+            parser.pause();
+            read += row.toString().length;
             row.splice(4,2);
             attackedFile.write('ID,' + row + '\n');
             for (let i = 4; i < row.length; i++) {
                 K.push(row[i]);
             }
-            attackFileOriginal.resume();
+            pBar.update(read);
+            parser.resume();
         })
         .on('data', (row) => {
-            attackFileOriginal.pause();
+            parser.pause();
+            read += row.toString().length;
             let outObj = {
                 ID: id,
                 timestamp: row['Timestamp'],
@@ -49,19 +58,19 @@ exports.attackFile = (cb) => {
             attackInARow().then(() => {
                 attackedFile.write(Object.values(outObj) + '\n');
                 id += 1;
-                //attackFileOriginal.emit('donereading');
-                attackFileOriginal.resume();
+                pBar.update(read);
+                if(read > 75000)
+                    parser.emit('end');
+                parser.resume();
             }).catch((err) => {
                 console.error(err);
             });
         })
-        .on('end', (rowCount) => {
-            console.log(`Attacked ${rowCount} rows`);
-            attackFileOriginal.close();
+        .on('end', () => {
+            pBar.stop();
+            let endAttackTime = new Date() - startAttackTime;
+            console.log('Total attack time: %dms', endAttackTime);
+            attackFileOriginal.destroy();
             attackedFile.close();
-        })
-        .on('donereading', function(){
-            attackFileOriginal.close();
-            console.log('got 20 rows', rows);
         })
 };
