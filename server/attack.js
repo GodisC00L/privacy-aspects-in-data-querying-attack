@@ -3,19 +3,18 @@ const client = require('../client/client');
 const csv = require('fast-csv');
 const cliProgress = require('cli-progress');
 
-let rows = [];
 let K = [];
 let id = 1;
 
 
 exports.attackFile = (cb) => {
-    const totalSize = fs.statSync('tmp/csv/target.csv').size;
+    const totalSize = fs.statSync('server/tmp/csv/target.csv').size;
     const pBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
     let read = 0;
     pBar.start(totalSize, 0);
     let startAttackTime = new Date();
-    const attackedFile = fs.createWriteStream('tmp/csv/attacked.csv');
-    const attackFileOriginal = fs.createReadStream('tmp/csv/target.csv');
+    const attackedFile = fs.createWriteStream('server/tmp/csv/attacked.csv');
+    const attackFileOriginal = fs.createReadStream('server/tmp/csv/target.csv');
     const parser = csv.parseStream(attackFileOriginal, {headers: true})
         .on('error', err => console.error(err))
         .on('headers', (row) => {
