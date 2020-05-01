@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.2/axios.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+          crossorigin="anonymous">
+    <script
+            src="https://code.jquery.com/jquery-3.4.1.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+    crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+    crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+            integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+    crossorigin="anonymous"></script>
+    <script src="//cdn.jsdelivr.net/npm/bluebird@3.7.2/js/browser/bluebird.js"></script>
+    <script src="client.js"></script>
+
+    <meta charset="UTF-8">
+    <title>Attack UI</title>
+    <style>
+        h1 {text-align: center;}
+        p {text-align: center;}
+        .d-inline-block{
+            text-align: center;
+            padding: 0;
+            width: 500px;
+        }
+        .progress-bar {
+            height: 25px;
+            width: 250px;
+            border: 2px solid darkblue;
+            background: whitesmoke;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: lightblue;
+            display: flex;
+            align-items: center;
+            transition: width 0.025s;
+        }
+        .progress-bar-text {
+            margin-left: 10px;
+            font-weight: bold;
+            color: black;
+        }
+    </style>
+</head>
+<body onload="onLoadFun()">
+
+    <div class="container">
+        <h1>Welcome!</h1>
+        <div id="serverInfo">
+            <p>
+                Server Info:
+                <br>
+                =====================
+                <br>
+                K Value: <span id="kVal">-1</span><br>
+                Min X: <span id="minX">-1</span> Max X: <span id="maxX">-1</span><br>
+                Min Y: <span id="minY">-1</span> Max Y: <span id="maxY">-1</span><br>
+                =====================
+                <br>
+            </p>
+        </div>
+        <br>
+        <div>
+            <h4>Upload a file to attack</h4>
+            <form class="form" id="uploadForm">
+                <input type="file" id="attackFile" name="attackFile">
+                <br>
+                <br>
+                <button id="attackFileBtn" type="button" class="btn btn-primary">Attack File!</button>
+            </form>
+            <br>
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-bar-fill">
+                    <span class="progress-bar-text">0%</span>
+                </div>
+            </div>
+        </div>
+        <br>
+        <form>
+            <div class="form-group">
+                <label for="timestamp">Timestamp</label>
+                <input class="form-control" id="timestamp" placeholder="Enter Timestamp">
+            </div>
+            <div class="form-group">
+                <label for="x">Target X</label>
+                <input class="form-control" id="x" placeholder="Enter Target X">
+            </div>
+            <div class="form-group">
+                <label for="y">Target Y</label>
+                <input class="form-control" id="y" placeholder="Enter Target Y">
+            </div>
+            <div>
+                <button id="attack" type="button" class="btn btn-primary">Attack</button>
+                <h5 class="d-inline-block" id="attackAns"></h5>
+            </div>
+            <br>
+            <br>
+            <div class="form-group">
+                <label for="setK">Set New K</label>
+                <input type="number" class="form-control" id="setK" placeholder="Enter New K">
+            </div>
+            <div>
+                <button id="setKBtn" type="button" class="btn btn-primary">Set K Value</button>
+            </div>
+        </form>
+
+    </div>
+
+    <script>
+        const onLoadFun = () => {
+
+            Promise.all([
+                getKVal(),
+                getMinMaxValues()
+            ]).then((res) => {
+                $("#kVal").text(res[0]);
+                $("#minX").text(res[1].minX);
+                $("#maxX").text(res[1].maxX);
+                $("#minY").text(res[1].minY);
+                $("#maxY").text(res[1].maxY);
+            });
+
+        };
+
+        document.getElementById("attack").addEventListener("click", () => {
+            const timestamp = parseFloat($("#timestamp").val());
+            const x = parseFloat($("#x").val());
+            const y = parseFloat($("#y").val());
+
+            console.time("singleTargetAttack2D");
+            singleTargetAttack2D(timestamp, x, y).then((res) => {
+                console.timeEnd("singleTargetAttack2D");
+                $("#attackAns").text("Vehicle Velocity: " + res.avgVelocity);
+            })
+        });
+        document.getElementById("setKBtn").addEventListener("click", () => {
+            setKVal($("#setK").val());
+        });
+
+
+        const uploadForm = document.getElementById("uploadForm");
+        const progressBarFill = document.querySelector("#progressBar > .progress-bar-fill");
+        const progressBarText = progressBarFill.querySelector(".progress-bar-text");
+
+        const upload = () => {
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/api/upload");
+
+            xhr.upload.addEventListener("progress", e => {
+                const precent = e.lengthComputable ? (e.loaded / e.total) * 100 : 0;
+
+                progressBarFill.style.width = precent.toFixed(2) + "%";
+                progressBarText.textContent = precent.toFixed(2) + "%";
+            });
+            xhr.send(new FormData(uploadForm));
+
+        };
+        document.getElementById("attackFileBtn").addEventListener("click", upload);
+
+
+    </script>
+
+
+
+</body>
+</html>
