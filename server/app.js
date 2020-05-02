@@ -3,20 +3,22 @@ const app = express();
 const path = require('path');
 const multer = require('multer');
 const attackApi = require('./attack');
-const fs = require('fs');
+const mkdirp = require('mkdirp');
+
 
 const port = process.env.PORT || 3000;
 
 app.use(express.static(path.resolve(__dirname, '..', 'client')));
 try {
-    fs.mkdirSync('server/tmp/csv/', {recursive: true});
+    mkdirp.sync(path.resolve(__dirname, '..', 'tmp', 'csv'));
 } catch (e) {
     console.log(e);
 }
+app.use("/files", express.static(path.resolve(__dirname, '..', 'tmp', 'csv')));
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'server/tmp/csv/');
+        cb(null, 'tmp/csv/');
     },
     filename: function (req, file, cb) {
         cb(null, 'target.csv');
@@ -36,7 +38,13 @@ app.post('/api/upload', (req, res) => {
         if(err)
             return res.end('Error uploading file');
         res.end('File uploaded!');
-        attackApi.attackFile(err => console.log(err));
+        attackApi.attackFile((res, err) => {
+            if(err) {
+                console.log(err);
+                return;
+            }
+        io.emit('fileReady');
+        });
     });
 });
 
@@ -48,3 +56,5 @@ const server = app.listen(port, (err) => {
     console.log('Listening on port', server.address().port);
 });
 
+const io = require('socket.io')(server);
+exports.io = io;

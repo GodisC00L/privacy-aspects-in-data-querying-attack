@@ -16,6 +16,7 @@
             integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
     crossorigin="anonymous"></script>
     <script src="//cdn.jsdelivr.net/npm/bluebird@3.7.2/js/browser/bluebird.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
     <script src="client.js"></script>
 
     <meta charset="UTF-8">
@@ -47,6 +48,18 @@
             font-weight: bold;
             color: black;
         }
+        .progress-bar-text-inner {
+            margin-left: 20px;
+            font-weight: bold;
+            color: black;
+            display: none;
+        }
+        .downloadBtn {
+            display: none;
+        }
+        .uploadFileBtn {
+            display: block;
+        }
     </style>
 </head>
 <body onload="onLoadFun()">
@@ -73,12 +86,18 @@
                 <input type="file" id="attackFile" name="attackFile">
                 <br>
                 <br>
-                <button id="attackFileBtn" type="button" class="btn btn-primary">Attack File!</button>
+                <div class="uploadFileBtn">
+                    <button id="uploadFileBtn" type="button" class="btn btn-primary">Attack File!</button>
+                </div>
+                <div class="downloadBtn" id="downloadBtn">
+                    <a href="files/attacked.csv"  id="downloadFile" type="button" class="btn btn-secondary" visbility="false">Download Attacked File</a>
+                </div>
             </form>
             <br>
             <div class="progress-bar" id="progressBar">
                 <div class="progress-bar-fill">
                     <span class="progress-bar-text">0%</span>
+                    <span id="progress-bar-text-inner" class="progress-bar-text-inner">Loading</span>
                 </div>
             </div>
         </div>
@@ -114,6 +133,8 @@
     </div>
 
     <script>
+        const socket = io.connect('/');
+
         const onLoadFun = () => {
 
             Promise.all([
@@ -146,6 +167,10 @@
             });
         });
 
+        document.getElementById("attackFile").addEventListener("click", () => {
+            document.getElementById("uploadFileBtn").style.display = "block";
+            document.getElementById("downloadBtn").style.display = "none";
+        });
 
         const uploadForm = document.getElementById("uploadForm");
         const progressBarFill = document.querySelector("#progressBar > .progress-bar-fill");
@@ -155,17 +180,34 @@
             const xhr = new XMLHttpRequest();
             xhr.open("POST", "/api/upload");
 
+            document.getElementById("progress-bar-text-inner").textContent = "Uploading...";
+            document.getElementById("progress-bar-text-inner").style.display = "block";
             xhr.upload.addEventListener("progress", e => {
                 const precent = e.lengthComputable ? (e.loaded / e.total) * 100 : 0;
 
                 progressBarFill.style.width = precent.toFixed(2) + "%";
                 progressBarText.textContent = precent.toFixed(2) + "%";
+                if(precent === 100) document.getElementById("progress-bar-text-inner").textContent = "Uploaded";
             });
             xhr.send(new FormData(uploadForm));
 
         };
-        document.getElementById("attackFileBtn").addEventListener("click", upload);
+        document.getElementById("uploadFileBtn").addEventListener("click", upload);
 
+        socket.on('fileReady', () => {
+            document.getElementById("uploadFileBtn").style.display = "none";
+            document.getElementById("downloadBtn").style.display = "block";
+        });
+
+        socket.on('attackProgress', (data) => {
+            document.getElementById("progress-bar-text-inner").textContent = "Attacking...";
+            const precent = data.done / data.totalSize * 100 ;
+
+            progressBarFill.style.width = precent.toFixed(2) + "%";
+            progressBarText.textContent = precent.toFixed(2) + "%";
+
+            if(precent === 100) document.getElementById("progress-bar-text-inner").textContent = "File Attacked!";
+        });
 
     </script>
 
