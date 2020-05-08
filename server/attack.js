@@ -9,7 +9,7 @@ const pathAttacked = 'tmp/csv/attacked.csv';
 
 exports.attackFile = (cb) => {
     const io = require('../server/app').io;
-    const THRESHOLD = 200;
+    const THRESHOLD = 50;
     let current = 0;
 
     let K;
