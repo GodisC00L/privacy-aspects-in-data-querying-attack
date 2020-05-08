@@ -29,8 +29,10 @@ exports.attackFile = (cb) => {
             row.splice(4,2);
             attackedFile.write('ID,' + row + '\n');
             K = row[4];
-            io.emit('attackProgress', {done: read, totalSize: totalSize});
-            parser.resume();
+            client.setK(K).then(() => {
+                io.emit('attackProgress', {done: read, totalSize: totalSize});
+                parser.resume();
+            });
         })
         .on('data', (row) => {
             if (++current >= THRESHOLD) {

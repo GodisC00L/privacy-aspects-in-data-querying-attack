@@ -384,10 +384,12 @@ const isInRangeX = (x1, x2) => {
 };
 
 if (is_server()) {
-    exports.attackSingleRow = (timestamp, xTarget, yTarget, testK) => {
-        return setKVal(testK).then(() => {
-            return singleTargetAttack2D(timestamp, xTarget, yTarget);
-        });
+    exports.attackSingleRow = (timestamp, xTarget, yTarget) => {
+        return singleTargetAttack2D(timestamp, xTarget, yTarget);
+    };
+
+    exports.setK = (setk) => {
+        return setKVal(setk);
     };
 }
 
