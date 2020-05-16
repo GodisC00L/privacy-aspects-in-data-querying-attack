@@ -1,5 +1,5 @@
 const DEBUG = false;
-const localhost = false;
+const localhost = true;
 let SERVER = "http://localhost:8080";
 if (!localhost) {
     SERVER = "https://immense-scrubland-97943.herokuapp.com"
@@ -49,9 +49,9 @@ const setKVal = (newK) => {
         newK,
         {headers: {'Content-Type': 'application/json'}}
     ).then((res) => {
-            k = res;
-            return res;
-        })
+        k = res;
+        return res;
+    })
         .catch((err) => {
             console.error(err);
         })
@@ -76,10 +76,10 @@ const getKVal = () => {
 
 const getMinMaxValues = () => {
     return axiosClient.get(SERVER + "/api/v1/db/getMinMaxValues")
-    .then((res) => {
-        MIN_MAX_VALUES = res;
-        return res;
-    });
+        .then((res) => {
+            MIN_MAX_VALUES = res;
+            return res;
+        });
 };
 
 const getNumOfVehicles = (timestamp) => {
@@ -111,52 +111,52 @@ const singleTargetAttack2D = (timestamp, xTarget, yTarget) => {
             });
         }
         return Promise.all([
-           // TopAreaIncludeMid = ((xMin,yTarget),(xMax,yMax))
-           getAvgVelocity({
-               timestamp: timestamp,
-               x1: MIN_MAX_VALUES.minX,
-               y1: yTarget,
-               x2: MIN_MAX_VALUES.maxX,
-               y2: MIN_MAX_VALUES.maxY
-           }),
+            // TopAreaIncludeMid = ((xMin,yTarget),(xMax,yMax))
+            getAvgVelocity({
+                timestamp: timestamp,
+                x1: MIN_MAX_VALUES.minX,
+                y1: yTarget,
+                x2: MIN_MAX_VALUES.maxX,
+                y2: MIN_MAX_VALUES.maxY
+            }),
 
             // TopArea = ((xMin,yTarget+epsilon),(xMax,yMax))
-           getAvgVelocity({
-               timestamp: timestamp,
-               x1: MIN_MAX_VALUES.minX,
-               y1: yTarget + EPSILON,
-               x2: MIN_MAX_VALUES.maxX,
-               y2: MIN_MAX_VALUES.maxY
-           }),
+            getAvgVelocity({
+                timestamp: timestamp,
+                x1: MIN_MAX_VALUES.minX,
+                y1: yTarget + EPSILON,
+                x2: MIN_MAX_VALUES.maxX,
+                y2: MIN_MAX_VALUES.maxY
+            }),
 
-           // BotAreaIncludeMid = ((xMin,yMin),(xMax,yTarget))
-           getAvgVelocity({
-               timestamp: timestamp,
-               x1: MIN_MAX_VALUES.minX,
-               y1: MIN_MAX_VALUES.minY,
-               x2: MIN_MAX_VALUES.maxX,
-               y2: yTarget
-           }),
+            // BotAreaIncludeMid = ((xMin,yMin),(xMax,yTarget))
+            getAvgVelocity({
+                timestamp: timestamp,
+                x1: MIN_MAX_VALUES.minX,
+                y1: MIN_MAX_VALUES.minY,
+                x2: MIN_MAX_VALUES.maxX,
+                y2: yTarget
+            }),
 
             // BotArea = ((xMin,yMin),(xMax,yTarget-epsilon))
-           getAvgVelocity({
-               timestamp: timestamp,
-               x1: MIN_MAX_VALUES.minX,
-               y1: MIN_MAX_VALUES.minY,
-               x2: MIN_MAX_VALUES.maxX,
-               y2: yTarget - EPSILON
-           }),
+            getAvgVelocity({
+                timestamp: timestamp,
+                x1: MIN_MAX_VALUES.minX,
+                y1: MIN_MAX_VALUES.minY,
+                x2: MIN_MAX_VALUES.maxX,
+                y2: yTarget - EPSILON
+            }),
 
-           // Area = ((xMin,yMin),(xMax,yMax))
-           getAvgVelocity({
-               timestamp: timestamp,
-               x1: MIN_MAX_VALUES.minX,
-               y1: MIN_MAX_VALUES.minY,
-               x2: MIN_MAX_VALUES.maxX,
-               y2: MIN_MAX_VALUES.maxY
-           }),
+            // Area = ((xMin,yMin),(xMax,yMax))
+            getAvgVelocity({
+                timestamp: timestamp,
+                x1: MIN_MAX_VALUES.minX,
+                y1: MIN_MAX_VALUES.minY,
+                x2: MIN_MAX_VALUES.maxX,
+                y2: MIN_MAX_VALUES.maxY
+            }),
 
-           getNumOfVehicles(timestamp)
+            getNumOfVehicles(timestamp)
         ]).then((values) => {
 
             // If one of the 5 queries returned -1 we perform 1D attack (?!)
@@ -348,7 +348,7 @@ const getSAvg = (dataBody, direction, resolution) => {
             else {
                 return {sAvg, dataBody};
             }
-    })
+        })
 };
 
 const isEvenPossible = (dataBody) => {
@@ -375,12 +375,102 @@ const isEvenPossible = (dataBody) => {
             // Checking if possible backward
             getAvgVelocity(backwardDataBody)
         ]).then((results) => {
-            return results;
-        });
+        return results;
+    });
 };
 
 const isInRangeX = (x1, x2) => {
     return (x1 >= MIN_MAX_VALUES.minX && x2 <= MIN_MAX_VALUES.maxX);
+};
+
+const getMaxVelocity = (dataBody) => {
+    return axiosClient.post(
+        SERVER + "/api/v1/db/getMaxVelocity",
+        dataBody,
+        {headers: {"Content-Type": "application/json"}}
+    );
+};
+
+
+const maxVelAttack = (data, fileToWrite) => {
+    Object.keys(data).forEach(key => {
+        const xListForTs = data[key];
+        const listSize = xListForTs.length;
+        let xTarget = xListForTs[0];
+        let tempTarget = xTarget;
+
+        console.log("xTarget: " + xTarget);
+        console.log("xListSize: " + listSize);
+        console.log("K = " + k);
+        // If no K elements in arrays
+        if(k > listSize) {
+            fileToWrite.write(Object.values({
+                timestamp: key,
+                X: xTarget,
+                velocity: -1,
+            }) + '\n');
+            return;
+        }
+
+        Promise.all([
+            getMaxVelocity({
+                timestamp: key,
+                x1: xTarget,
+                y1: DEFAULT_RESOLUTION,
+                x2: xListForTs[k - 1],
+                y2: DEFAULT_RESOLUTION
+            })]).then((maxVel) => {
+            console.log("First Max Vel: " + maxVel[0]);
+            async function maxVelAttack() {
+                const foundVelocity = [];
+                for (let i = 1; i < listSize; i++) {
+                    let obj = {
+                        timestamp: key,
+                        X: -1,
+                        velocity: -1
+                    };
+                    if(i >= listSize - k) {
+                        if(!foundVelocity.includes(xListForTs[i])) {
+                            obj.X = xListForTs[i];
+                            fileToWrite.write(Object.values(obj) + '\n');
+                        }
+                        continue;
+                    }
+                    xTarget = tempTarget;
+                    tempTarget = xListForTs[i];
+                    const maxVelTemp = await getMaxVelocity({
+                        timestamp: key,
+                        x1: tempTarget,
+                        y1: DEFAULT_RESOLUTION,
+                        x2: xListForTs[i + k - 1],
+                        y2: DEFAULT_RESOLUTION
+                    });
+
+                    console.log(i);
+                    console.log("maxVel: " + maxVel[0] + " maxVelTemp: " + maxVelTemp);
+                    if (maxVelTemp > maxVel[0]) {
+                        obj.X = xListForTs[i + k - 1];
+                        obj.velocity = maxVelTemp;
+                        foundVelocity.push(obj.X);
+                        fileToWrite.write(Object.values(obj) + '\n');
+                        obj.X = xTarget;
+                        obj.velocity = -1;
+                        fileToWrite.write(Object.values(obj) + '\n');
+                    } else if (maxVelTemp < maxVel[0]) {
+                        obj.X = xTarget;
+                        obj.velocity = maxVel[0];
+                        foundVelocity.push(obj.X);
+                        fileToWrite.write(Object.values(obj) + '\n');
+                    } else if (!foundVelocity.includes(xTarget)) {
+                        obj.X = xTarget;
+                        fileToWrite.write(Object.values(obj) + '\n');
+                    }
+                    maxVel[0] = maxVelTemp;
+                }
+            }
+            maxVelAttack().then( () => console.log("done"));
+        });
+    });
 };
 
 if (is_server()) {
@@ -390,6 +480,13 @@ if (is_server()) {
 
     exports.setK = (setk) => {
         return setKVal(setk);
+    };
+
+
+    exports.attackMaxFile = (data, fileToWrite) => {
+        return getKVal().then( () => {
+            return maxVelAttack(data, fileToWrite);
+        })
     };
 }
 

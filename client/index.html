@@ -60,6 +60,9 @@
         .uploadFileBtn {
             display: block;
         }
+        .headers {
+            text-align: center;
+        }
     </style>
 </head>
 <body onload="onLoadFun()">
@@ -80,55 +83,101 @@
             </p>
         </div>
         <br>
-        <div>
-            <h4>Upload a file to attack</h4>
-            <form class="form" id="uploadForm">
-                <input type="file" id="attackFile" name="attackFile">
-                <br>
-                <br>
-                <div class="uploadFileBtn">
-                    <button id="uploadFileBtn" type="button" class="btn btn-primary">Attack File!</button>
+        <div class="container">
+            <ul class="nav nav-tabs">
+                <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#fullListAvgVelocity">Full file avg velocity attack</a></li>
+                <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#singleTargetAttack">Avg Velocity Single Target Attack</a></li>
+                <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#maxVelAttack">Max Velocity Attack</a></li>
+            </ul>
+
+            <!-- Avg full List -->
+            <div class="tab-content">
+                <div id="fullListAvgVelocity" class="tab-pane fade in active">
+                    <div id="uploadFormDiv" class="uploadFormDiv">
+                        <h4 class="headers">Upload a file to attack</h4>
+                        <form class="form" id="uploadForm">
+                            <input type="file" id="attackFile" name="attackFile">
+                            <br>
+                            <br>
+                            <div class="uploadFileBtn">
+                                <button id="uploadFileBtn" type="button" class="btn btn-primary">Attack File!</button>
+                            </div>
+                            <div class="downloadBtn" id="downloadBtn">
+                                <a href="files/attacked.csv"  id="downloadFile" type="button" class="btn btn-secondary" visbility="false">Download Attacked File</a>
+                            </div>
+                        </form>
+                        <br>
+                        <div class="progress-bar" id="progressBar">
+                            <div class="progress-bar-fill">
+                                <span class="progress-bar-text">0%</span>
+                                <span id="progress-bar-text-inner" class="progress-bar-text-inner">Loading</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="downloadBtn" id="downloadBtn">
-                    <a href="files/attacked.csv"  id="downloadFile" type="button" class="btn btn-secondary" visbility="false">Download Attacked File</a>
+
+                <!--       Avg Single Target         -->
+                <div id="singleTargetAttack" class="tab-pane fade">
+                    <h4 class="headers">Single Target Attack</h4>
+                    <form id="rest">
+                        <div class="form-group">
+                            <label for="timestamp">Timestamp</label>
+                            <input class="form-control" id="timestamp" placeholder="Enter Timestamp">
+                        </div>
+                        <div class="form-group">
+                            <label for="x">Target X</label>
+                            <input class="form-control" id="x" placeholder="Enter Target X">
+                        </div>
+                        <div class="form-group">
+                            <label for="y">Target Y</label>
+                            <input class="form-control" id="y" placeholder="Enter Target Y">
+                        </div>
+                        <div>
+                            <button id="attack" type="button" class="btn btn-primary">Attack</button>
+                            <h5 class="d-inline-block" id="attackAns"></h5>
+                        </div>
+                        <br>
+                        <br>
+                        <div class="form-group">
+                            <label for="setK">Set New K</label>
+                            <input type="number" class="form-control" id="setK" placeholder="Enter New K">
+                        </div>
+                        <div>
+                            <button id="setKBtn" type="button" class="btn btn-primary">Set K Value</button>
+                        </div>
+                    </form>
                 </div>
-            </form>
-            <br>
-            <div class="progress-bar" id="progressBar">
-                <div class="progress-bar-fill">
-                    <span class="progress-bar-text">0%</span>
-                    <span id="progress-bar-text-inner" class="progress-bar-text-inner">Loading</span>
+
+
+                <!-- Max Velocity -->
+                <div id="maxVelAttack" class="tab-pane fade">
+                    <div id="uploadMaxVel" class="uploadFormDiv">
+                        <h4 class="headers">Upload a file to attack</h4>
+                        <form class="form" id="uploadFormMaxVel">
+                            <input type="file" id="attackFileMaxVel" name="attackFile">
+                            <br>
+                            <br>
+                            <div class="uploadFileBtn">
+                                <button id="uploadFileBtnMaxVel" type="button" class="btn btn-primary">Attack File!</button>
+                            </div>
+                            <div class="downloadBtn" id="downloadBtnMaxVel">
+                                <a href="files/attacked.csv"  id="downloadFileMaxVel" type="button" class="btn btn-secondary" visbility="false">Download Attacked File</a>
+                            </div>
+                        </form>
+                        <br>
+                        <div class="progress-bar" id="progressBarMaxVel">
+                            <div class="progress-bar-fill">
+                                <span class="progress-bar-text">0%</span>
+                                <span id="progress-bar-text-inner-maxVel" class="progress-bar-text-inner">Loading</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+
         <br>
-        <form>
-            <div class="form-group">
-                <label for="timestamp">Timestamp</label>
-                <input class="form-control" id="timestamp" placeholder="Enter Timestamp">
-            </div>
-            <div class="form-group">
-                <label for="x">Target X</label>
-                <input class="form-control" id="x" placeholder="Enter Target X">
-            </div>
-            <div class="form-group">
-                <label for="y">Target Y</label>
-                <input class="form-control" id="y" placeholder="Enter Target Y">
-            </div>
-            <div>
-                <button id="attack" type="button" class="btn btn-primary">Attack</button>
-                <h5 class="d-inline-block" id="attackAns"></h5>
-            </div>
-            <br>
-            <br>
-            <div class="form-group">
-                <label for="setK">Set New K</label>
-                <input type="number" class="form-control" id="setK" placeholder="Enter New K">
-            </div>
-            <div>
-                <button id="setKBtn" type="button" class="btn btn-primary">Set K Value</button>
-            </div>
-        </form>
+
 
     </div>
 
@@ -172,13 +221,13 @@
             document.getElementById("downloadBtn").style.display = "none";
         });
 
-        const uploadForm = document.getElementById("uploadForm");
         const progressBarFill = document.querySelector("#progressBar > .progress-bar-fill");
         const progressBarText = progressBarFill.querySelector(".progress-bar-text");
 
-        const upload = () => {
+        const upload = (pathOfPost, uploadForm) => {
+            console.log('enter');
             const xhr = new XMLHttpRequest();
-            xhr.open("POST", "/api/upload");
+            xhr.open("POST", pathOfPost);
 
             document.getElementById("progress-bar-text-inner").textContent = "Uploading...";
             document.getElementById("progress-bar-text-inner").style.display = "block";
@@ -192,7 +241,13 @@
             xhr.send(new FormData(uploadForm));
 
         };
-        document.getElementById("uploadFileBtn").addEventListener("click", upload);
+        document.getElementById("uploadFileBtn").addEventListener("click", () => {
+            upload("/api/upload/avgVel", document.getElementById("uploadForm"))
+        });
+        document.getElementById("uploadFileBtnMaxVel").addEventListener("click", () => {
+            upload("/api/upload/maxVel", document.getElementById("uploadFormMaxVel"))
+        });
+
 
         socket.on('fileReady', () => {
             document.getElementById("uploadFileBtn").style.display = "none";

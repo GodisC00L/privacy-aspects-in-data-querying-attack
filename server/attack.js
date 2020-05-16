@@ -4,11 +4,13 @@ const csv = require('fast-csv');
 const exec = require('child_process').execSync;
 
 
-const pathTarget = 'tmp/csv/target.csv';
-const pathAttacked = 'tmp/csv/attacked.csv';
 
-exports.attackFile = (cb) => {
+
+exports.attackFileAvgVelocity = (cb) => {
     const io = require('../server/app').io;
+    const pathTarget = 'tmp/csv/target.csv';
+    const pathAttacked = 'tmp/csv/attacked.csv';
+
     const THRESHOLD = 50;
     let current = 0;
 
@@ -28,6 +30,7 @@ exports.attackFile = (cb) => {
             ++read;
             row.splice(4,2);
             attackedFile.write('ID,' + row + '\n');
+            //TODO: what if no K?
             K = row[4];
             client.setK(K).then(() => {
                 io.emit('attackProgress', {done: read, totalSize: totalSize});
@@ -59,7 +62,7 @@ exports.attackFile = (cb) => {
                 outObj.answers = process.hrtime(hrstart)[1] / 1000000;
                 outObj.velocity = res.avgVelocity;
                 attackedFile.write(Object.values(outObj) + '\n');
-                io.emit('attackProgress', {done: ++read, totalSize: totalSize});
+                //io.emit('attackProgress', {done: ++read, totalSize: totalSize});
                 if (read >= totalSize) {
                     attackedFile.close();
                     cb();
@@ -75,4 +78,58 @@ exports.attackFile = (cb) => {
             console.log('Total attack time: %dms', endAttackTime);
             attackFileOriginal.destroy();
         })
+};
+
+exports.attackFileMax = (cb) => {
+    console.log("Attack File Max");
+
+
+    const io = require('../server/app').io;
+    const _ = require('lodash');
+
+    const data = {};
+
+    const pathTarget = 'tmp/csv/targetMax.csv';
+    const pathAttacked = 'tmp/csv/attackedMax.csv';
+
+    const totalSize = parseInt(exec('cat ' + pathTarget + ' | wc -l'));
+    let read = 0;
+
+    const attackedFile = fs.createWriteStream(pathAttacked);
+    const attackFileOriginal = fs.createReadStream(pathTarget);
+    const parser = csv.parseStream(attackFileOriginal, {headers: true})
+        .on('error', err => console.error(err))
+        .on('headers', (row) => {
+            attackedFile.write(Object.values(row)  + '\n');
+        })
+        .on('data', (row) => {
+            // Create list of X for each timestamp
+            const timestamp = row['Timestamp'];
+            const X = row['X'];
+
+            if(!data[timestamp])
+                data[timestamp] = [];
+            data[timestamp].push(X);
+            io.emit('fileMaxProgress', {done: ++read, totalSize: totalSize});
+        })
+        .on('end', () => {
+            fixData(data).then(() => {
+                client.attackMaxFile(data, attackedFile);
+            }).catch((err) => {
+                console.error(err);
+            })
+            /*Object.keys(data).forEach(key => {
+                fixData()
+            });
+            client.attackMaxFile(data, attackedFile);*/
+        });
+
+    async function fixData(data) {
+        for(const key of Object.keys(data))
+            data[key] = await _.orderBy(data[key], 'x', 'asc');
+    }
+
+    const attackMaxVel = async (data) => {
+        await fixData(data);
+    }
 };

@@ -21,7 +21,12 @@ const storage = multer.diskStorage({
         cb(null, 'tmp/csv/');
     },
     filename: function (req, file, cb) {
-        cb(null, 'target.csv');
+        if(file.originalname.includes('Max'))
+            cb(null, 'targetMax.csv');
+        else if(file.originalname.includes('Min'))
+            cb(null, 'targetMin.csv');
+        else
+            cb(null, 'target.csv');
     },
     onFileUploadStart: (file) => {
         console.log(file.originalname + ' is starting...');
@@ -33,19 +38,35 @@ const storage = multer.diskStorage({
 const upload = multer({storage: storage}).any();
 app.use(upload);
 
-app.post('/api/upload', (req, res) => {
+app.post('/api/upload/avgVel', (req, res) => {
     upload(req, res, (err) => {
         if(err)
             return res.end('Error uploading file');
         res.end('File uploaded!');
-        attackApi.attackFile((res, err) => {
+        attackApi.attackFileAvgVelocity((res, err) => {
             if(err) {
                 console.log(err);
                 return;
             }
-        io.emit('fileReady');
+            io.emit('fileReady');
         });
     });
+});
+
+app.post('/api/upload/maxVel', (req, res) => {
+    upload(req, res, (err) => {
+        if(err) {
+            return res.end('Error uploading file');
+        }
+        res.end('File Uploaded!');
+        attackApi.attackFileMax((res, err) => {
+            if(err) {
+                console.log(err);
+                return;
+            }
+            io.emit('fileReady');
+        })
+    })
 });
 
 const server = app.listen(port, (err) => {
