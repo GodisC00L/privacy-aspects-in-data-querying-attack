@@ -125,8 +125,9 @@ exports.attackFileMax = (cb) => {
         });
 
     async function fixData(data) {
-        for(const key of Object.keys(data))
-            data[key] = await _.orderBy(data[key], 'x', 'asc');
+        for(const key of Object.keys(data)){
+            data[key] = data[key].sort();
+        }
     }
 
     const attackMaxVel = async (data) => {
