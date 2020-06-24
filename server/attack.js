@@ -62,7 +62,7 @@ exports.attackFileAvgVelocity = (cb) => {
                 outObj.answers = process.hrtime(hrstart)[1] / 1000000;
                 outObj.velocity = res.avgVelocity;
                 attackedFile.write(Object.values(outObj) + '\n');
-                //io.emit('attackProgress', {done: ++read, totalSize: totalSize});
+                io.emit('attackProgress', {done: ++read, totalSize: totalSize});
                 if (read >= totalSize) {
                     attackedFile.close();
                     cb();
@@ -75,6 +75,7 @@ exports.attackFileAvgVelocity = (cb) => {
         })
         .on('end', () => {
             let endAttackTime = new Date() - startAttackTime;
+            io.emit('attackTime', {timeForAttack: endAttackTime});
             console.log('Total attack time: %dms', endAttackTime);
             attackFileOriginal.destroy();
         })
@@ -118,10 +119,6 @@ exports.attackFileMax = (cb) => {
             }).catch((err) => {
                 console.error(err);
             })
-            /*Object.keys(data).forEach(key => {
-                fixData()
-            });
-            client.attackMaxFile(data, attackedFile);*/
         });
 
     async function fixData(data) {

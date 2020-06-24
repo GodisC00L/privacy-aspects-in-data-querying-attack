@@ -68,17 +68,17 @@
 <body onload="onLoadFun()">
 
     <div class="container">
-        <h1>Welcome!</h1>
+        <h1>Attack Application UI</h1>
         <div id="serverInfo">
             <p>
                 Server Info:
                 <br>
-                =====================
+                =============================================
                 <br>
                 K Value: <span id="kVal">-1</span><br>
                 Min X: <span id="minX">-1</span> Max X: <span id="maxX">-1</span><br>
                 Min Y: <span id="minY">-1</span> Max Y: <span id="maxY">-1</span><br>
-                =====================
+                =============================================
                 <br>
             </p>
         </div>
@@ -87,7 +87,7 @@
             <ul class="nav nav-tabs">
                 <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#fullListAvgVelocity">Full file avg velocity attack</a></li>
                 <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#singleTargetAttack">Avg Velocity Single Target Attack</a></li>
-                <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#maxVelAttack">Max Velocity Attack</a></li>
+                <!--<li class="nav-item"><a class="nav-link" data-toggle="tab" href="#maxVelAttack">Max Velocity Attack</a></li>-->
             </ul>
 
             <!-- Avg full List -->
@@ -264,8 +264,11 @@
             if(precent === 100) document.getElementById("progress-bar-text-inner").textContent = "File Attacked!";
         });
 
-    </script>
+        socket.on('attackTime', (data) => {
+            window.alert('Total attack time:' + data.timeForAttack +' ms');
+        });
 
+    </script>
 
 
 </body>

@@ -1,5 +1,5 @@
 const DEBUG = false;
-const localhost = false;
+const localhost = true;
 let SERVER = "http://localhost:8080";
 if (!localhost) {
     SERVER = "https://immense-scrubland-97943.herokuapp.com"
@@ -457,10 +457,12 @@ const maxVelAttack = (data, fileToWrite) => {
                         obj.velocity = -1;
                         fileToWrite.write(Object.values(obj) + '\n');
                     } else if (maxVelTemp < maxVel[0]) {
-                        obj.X = xTarget;
-                        obj.velocity = maxVel[0];
-                        foundVelocity.push(obj.X);
-                        fileToWrite.write(Object.values(obj) + '\n');
+                        if(!foundVelocity.includes(xTarget)) {
+                            obj.X = xTarget;
+                            obj.velocity = maxVel[0];
+                            foundVelocity.push(obj.X);
+                            fileToWrite.write(Object.values(obj) + '\n');
+                        }
                     } else if (!foundVelocity.includes(xTarget)) {
                         obj.X = xTarget;
                         fileToWrite.write(Object.values(obj) + '\n');
